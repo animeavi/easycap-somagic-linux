@@ -1211,6 +1211,8 @@ static void usage()
 	fprintf(stderr, PROGRAM_NAME" -n -s | mplayer -vf yadif,screenshot -demuxer rawvideo -rawvideo \"ntsc:format=uyvy:fps=30000/1001\" -aspect 4:3 -\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "# NTSC, CVBS/composite, increased sharpness:\n");
+	fprintf(stderr, PROGRAM_NAME" -n --luminance=2 --lum-aperture=3 | mpv --vf=lavfi=yadif --demuxer=rawvideo --demuxer-rawvideo-w=720 --demuxer-rawvideo-h=480 --demuxer-rawvideo-mp-format=uyvy422 --demuxer-rawvideo-fps=29.97 --video-aspect-override=4:3 -\n");
+	fprintf(stderr, "or\n");
 	fprintf(stderr, PROGRAM_NAME" -n --luminance=2 --lum-aperture=3 | mplayer -vf yadif,screenshot -demuxer rawvideo -rawvideo \"ntsc:format=uyvy:fps=30000/1001\" -aspect 4:3 -\n");
 }
 
