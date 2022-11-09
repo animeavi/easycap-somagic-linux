@@ -718,7 +718,11 @@ static int somagic_init()
 	unsigned char buf[65535];
 
 	libusb_init(NULL);
-	libusb_set_debug(NULL, 0);
+	#if LIBUSB_API_VERSION >= 0x01000106
+		libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, 0);
+	#else
+		libusb_set_debug(NULL, 0);
+	#endif
 
 	for (p = 0; p < PRODUCT_COUNT; p++) {
 		dev = find_device(VENDOR, PRODUCT[p]);

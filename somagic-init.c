@@ -260,10 +260,18 @@ int main(int argc, char **argv)
 
 	libusb_init(NULL);
 	#ifdef DEBUG
-	libusb_set_debug(NULL, 255);
+	#if LIBUSB_API_VERSION >= 0x01000106
+		libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, 255);
+	#else
+		libusb_set_debug(NULL, 255);
+	#endif
 	list_devices();
 	#else
-	libusb_set_debug(NULL, 0);
+	#if LIBUSB_API_VERSION >= 0x01000106
+		libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, 0);
+	#else
+		libusb_set_debug(NULL, 0);
+	#endif
 	#endif
 
 	dev = find_device(VENDOR, ORIGINAL_PRODUCT);
