@@ -119,23 +119,27 @@ void gotdata(struct libusb_transfer *tfr)
 		write(1, libusb_get_iso_packet_buffer_simple(tfr, i), tfr->iso_packet_desc[i].actual_length);
 	}
 
-	//	fprintf(stderr, "id %d got %d pkts of length %d. calc=%d, total=%d (%04x)\n", pcount, num, length, num*length, total, total);
+	#ifdef DEBUG
+	fprintf(stderr, "id %d got %d pkts of length %d. calc=%d, total=%d (%04x)\n", pcount, num, length, num*length, total, total);
+	#endif
 	pcount++;
 
+	#ifdef DEBUG
 	if (pcount >= 0) {
-		/* find_sync(data, num * length); */
-		//init_buffer(data, num * length);
-		/* init_buffer(data, total); */
-		//process_data();
-		/*
+		find_sync(data, num * length);
+		init_buffer(data, num * length);
+		init_buffer(data, total);
+		process_data();
 		fprintf(stderr, "write\n");
 		write(1, data, total);
 		write(1,"----------------",16);
-		*/
 	}
+	#endif
 
 	if (pcount <= FCOUNT - 4) {
-		/* fprintf(stderr, "resubmit id %d\n", pcount - 1); */
+		#ifdef DEBUG
+		fprintf(stderr, "resubmit id %d\n", pcount - 1);
+		#endif
 		ret = libusb_submit_transfer(tfr);
 		if (ret != 0) {
 			fprintf(stderr, "libusb_submit_transfer failed with error %d\n", ret);
@@ -223,7 +227,7 @@ int main()
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
 
-/*
+	#ifdef DEBUG
 	memcpy(buf, "\x0b\x00\x00\x82\x01\x00\x34\x01", 0x0000008);
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 0x0000008, 1000);
 	fprintf(stderr, "8 control msg returned %d, bytes: ", ret);
@@ -234,8 +238,7 @@ int main()
 	fprintf(stderr, "9 control msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-*/
-/*
+
 	memcpy(buf, "\x0b\x00\x20\x82\x01\x30\x80\x80", 0x0000008);
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 0x0000008, 1000);
 	fprintf(stderr, "10 control msg returned %d, bytes: ", ret);
@@ -245,8 +248,7 @@ int main()
 	fprintf(stderr, "11 control msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-*/
-/*
+
 	memcpy(buf, "\x0b\x00\x00\x82\x01\x00\x34\xff", 0x0000008);
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 0x0000008, 1000);
 	fprintf(stderr, "12 control msg returned %d, bytes: ", ret);
@@ -257,8 +259,7 @@ int main()
 	fprintf(stderr, "13 control msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-*/
-/*
+
 	memcpy(buf, "\x0b\x00\x00\x82\x01\x00\x3a\x80", 0x0000008);
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 0x0000008, 1000);
 	fprintf(stderr, "14 control msg returned %d, bytes: ", ret);
@@ -269,8 +270,7 @@ int main()
 	fprintf(stderr, "15 control msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-*/
-/*
+
 	memcpy(buf, "\x0b\x00\x00\x82\x01\x00\x3a\xff", 0x0000008);
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 0x0000008, 1000);
 	fprintf(stderr, "16 control msg returned %d, bytes: ", ret);
@@ -281,9 +281,7 @@ int main()
 	fprintf(stderr, "17 control msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-*/
 
-/*
 	memcpy(buf, "\x0b\x4a\xc0\x01\x01\x01\x08\xf4", 0x0000008);
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 0x0000008, 1000);
 	fprintf(stderr, "96 control msg returned %d, bytes: ", ret);
@@ -697,7 +695,8 @@ int main()
 	fprintf(stderr, "180 control msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-*/
+	#endif
+
 	memcpy(buf, "\x0b\x00\x00\x82\x01\x17\x40\x00", 0x0000008);
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 0x0000008, 1000);
 	fprintf(stderr, "183 control msg returned %d, bytes: ", ret);
@@ -785,13 +784,13 @@ int main()
 		exit(1);
 	}
 
-/*
+	#ifdef DEBUG
 	memcpy(buf, "\x0b\x00\x00\x82\x01\x18\x00\x09", 0x0000008); // 0x0d = 0000 1101 // Without Bit0 Set, we get no data! We also need Bit3, Don't know what Bit2 Does?
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 0x0000008, 1000);
 	fprintf(stderr, "242 control msg returned %d, bytes: ", ret);
 		print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-*/
+	#endif
 
 	while (pcount < FCOUNT) {
 		libusb_handle_events(NULL);

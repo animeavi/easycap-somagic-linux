@@ -291,10 +291,10 @@ static void alg1_process(struct alg1_video_state_t *vs, unsigned char *buffer, i
 					 * ignoring bytes until the next 0xff.
 					 */
 					fprintf(stderr, "bad sync on line %d @%td (%04tx)\n", vs->active_line_count, next - buffer, next - buffer);
-					/*
-					 *				print_bytes_only(pbuffer, buffer_pos + 64);
-					 *				print_bytes(pbuffer + buffer_pos, 8);
-					 */
+					#ifdef DEBUG
+					print_bytes_only(pbuffer, buffer_pos + 64);
+					print_bytes(pbuffer + buffer_pos, 8);
+					#endif
 					bs = 1;
 				}
 				next++;
@@ -774,11 +774,11 @@ static int somagic_init()
 		fprintf(stderr, "\n");
 	}
 	ret = libusb_get_descriptor(devh, 0x0000002, 0x0000000, buf, 66);
-	/*
+	#ifdef DEBUG
 	fprintf(stderr, "3 get descriptor returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-	*/
+	#endif
 
 	ret = libusb_release_interface(devh, 0);
 	if (ret) {
@@ -1097,11 +1097,11 @@ static int somagic_init()
 		fprintf(stderr, "\n");
 	}
 	ret = libusb_get_descriptor(devh, 0x0000002, 0x0000000, buf, 265);
-	/*
+	#ifdef DEBUG
 	fprintf(stderr, "191 get descriptor returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
-	*/
+	#endif
 
 	ret = libusb_set_interface_alt_setting(devh, 0, 2);
 	if (ret != 0) {

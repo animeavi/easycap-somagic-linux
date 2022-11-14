@@ -331,7 +331,9 @@ static void process(struct video_state_t *vs, uint8_t c)
 
 void control_rx(struct libusb_transfer *tfr)
 {
-//	fprintf(stderr,"control_rx: done, status=%d\n", tfr->status);
+	#ifdef DEBUG
+	fprintf(stderr,"control_rx: done, status=%d\n", tfr->status);
+	#endif
 	libusb_free_transfer(tfr);
 }
 
@@ -417,7 +419,9 @@ void gotdata(struct libusb_transfer *tfr)
 		int length = tfr->iso_packet_desc[i].actual_length;
 		int pos = 0;
 		int k;
-//fprintf(stderr," %d", length);
+		#ifdef DEBUG
+		fprintf(stderr," %d", length);
+		#endif
 		while (pos < length) {
 			/*
 			* Within each packet of the transfer, the data is divided into blocks of 0x400 bytes
@@ -446,17 +450,19 @@ void gotdata(struct libusb_transfer *tfr)
 		vid_free[vid_free_item] = tfr;
 		vid_free_item++;
 	}
-// 	if (!stop_sending_requests) {
-// 		reqcount++;
-// 		if( iso_mode == 1 ) set_vid_mode( tfr->dev_handle );
-// 		ret = libusb_submit_transfer(tfr);
-// 		if (ret != 0) {
-// 			fprintf(stderr, "libusb_submit_transfer failed with error %d\n", ret);
-// 			exit(1);
-// 
-// 		}
-// 		pending_requests++;
-// 	}
+	#ifdef DEBUG
+ 	if (!stop_sending_requests) {
+ 		reqcount++;
+ 		if( iso_mode == 1 ) set_vid_mode( tfr->dev_handle );
+ 		ret = libusb_submit_transfer(tfr);
+ 		if (ret != 0) {
+ 			fprintf(stderr, "libusb_submit_transfer failed with error %d\n", ret);
+ 			exit(1);
+ 
+ 		}
+ 		pending_requests++;
+ 	}
+	#endif
 }
 
 uint8_t somagic_read_reg(uint16_t reg)
@@ -469,18 +475,22 @@ uint8_t somagic_read_reg(uint16_t reg)
 	buf[6] = reg & 0xff;
 
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 8, 1000);
+	#ifdef DEBUG
 	if (ret != 8) {
-//		fprintf(stderr, "read_reg msg returned %d, bytes: ", ret);
-		//print_bytes(buf, ret);
-		//fprintf(stderr, "\n");
+		fprintf(stderr, "read_reg msg returned %d, bytes: ", ret);
+		print_bytes(buf, ret);
+		fprintf(stderr, "\n");
 	}
+	#endif
 
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE + LIBUSB_ENDPOINT_IN, 0x0000001, 0x000000b, 0x0000000, buf, 13, 1000);
+	#ifdef DEBUG
 	if (ret != 13) {
-		//fprintf(stderr, "read_reg control msg returned %d, bytes: ", ret);
-		//print_bytes(buf, ret);
-		//fprintf(stderr, "\n");
+		fprintf(stderr, "read_reg control msg returned %d, bytes: ", ret);
+		print_bytes(buf, ret);
+		fprintf(stderr, "\n");
 	}
+	#endif
 
 	return buf[7];
 }
@@ -496,18 +506,22 @@ static int somagic_write_reg(uint16_t reg, uint8_t val)
 	buf[7] = val;
 
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 8, 1000);
+	#ifdef DEBUG
 	if (ret != 8) {
-		//fprintf(stderr, "write reg control msg returned %d, bytes: ", ret);
-		//print_bytes(buf, ret);
-		//fprintf(stderr, "\n");
+		fprintf(stderr, "write reg control msg returned %d, bytes: ", ret);
+		print_bytes(buf, ret);
+		fprintf(stderr, "\n");
 	}
+	#endif
 
 	return ret;
 }
 
 static uint8_t somagic_read_i2c(uint8_t dev_addr, uint8_t reg)
 {
-	//int ret;
+	#ifdef DEBUG
+	int ret;
+	#endif
 	uint8_t buf[13];
 
 	memcpy(buf, "\x0b\x4a\x84\x00\x01\x10\x00\x00\x00\x00\x00\x00\x00", 13);
@@ -516,9 +530,11 @@ static uint8_t somagic_read_i2c(uint8_t dev_addr, uint8_t reg)
 	buf[5] = reg;
 
 	libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 13, 1000);
-	//fprintf(stderr, "-> i2c_read msg returned %d, bytes: ", ret);
-	//print_bytes(buf, ret);
-	//fprintf(stderr, "\n");
+	#ifdef DEBUG
+	fprintf(stderr, "-> i2c_read msg returned %d, bytes: ", ret);
+	print_bytes(buf, ret);
+	fprintf(stderr, "\n");
+	#endif
 	usleep(18 * 1000);
 
 	memcpy(buf, "\x0b\x4a\xa0\x00\x01\x00\xff\xff\xff\xff\xff\xff\xff", 13);
@@ -526,15 +542,19 @@ static uint8_t somagic_read_i2c(uint8_t dev_addr, uint8_t reg)
 	buf[1] = dev_addr;
 
 	libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 13, 1000);
-	//fprintf(stderr, "-> i2c_read msg returned %d, bytes: ", ret);
-	//print_bytes(buf, ret);
-	//fprintf(stderr, "\n");
+	#ifdef DEBUG
+	fprintf(stderr, "-> i2c_read msg returned %d, bytes: ", ret);
+	print_bytes(buf, ret);
+	fprintf(stderr, "\n");
+	#endif
 
 	memset(buf, 0xff, 0x000000d);
 	libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE + LIBUSB_ENDPOINT_IN, 0x0000001, 0x000000b, 0x0000000, buf, 13, 1000);
-	//fprintf(stderr, "<- i2c_read msg returned %d, bytes: ", ret);
-	//print_bytes(buf, ret);
-	//fprintf(stderr, "\n");
+	#ifdef DEBUG
+	fprintf(stderr, "<- i2c_read msg returned %d, bytes: ", ret);
+	print_bytes(buf, ret);
+	fprintf(stderr, "\n");
+	#endif
 	usleep(11 * 1000);
 
 	return buf[5];
@@ -552,11 +572,13 @@ static int somagic_write_i2c(uint8_t dev_addr, uint8_t reg, uint8_t val)
 	buf[6] = val;
 
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b, 0x0000000, buf, 8, 1000);
+	#ifdef DEBUG
 	if (ret != 8) {
-		//fprintf(stderr, "write_i2c returned %d, bytes: ", ret);
-		//print_bytes(buf, ret);
-		//fprintf(stderr, "\n");
+		fprintf(stderr, "write_i2c returned %d, bytes: ", ret);
+		print_bytes(buf, ret);
+		fprintf(stderr, "\n");
 	}
+	#endif
 
 	return ret;
 }
@@ -849,33 +871,48 @@ int main(int argc, char **argv)
 
 	ret = libusb_get_descriptor(devh, 0x0000001, 0x0000000, buf, 0x0000012);
 	fprintf(stderr, "1 get descriptor returned %d, bytes: ", ret);
-	//print_bytes(buf, ret);
-	//fprintf(stderr, "\n");
+	#ifdef DEBUG
+	print_bytes(buf, ret);
+	fprintf(stderr, "\n");
+	#endif
 	ret = libusb_get_descriptor(devh, 0x0000002, 0x0000000, buf, 0x0000009);
-	//fprintf(stderr, "2 get descriptor returned %d, bytes: ", ret);
-	//print_bytes(buf, ret);
-	//fprintf(stderr, "\n");
+	#ifdef DEBUG
+	fprintf(stderr, "2 get descriptor returned %d, bytes: ", ret);
+	print_bytes(buf, ret);
+	fprintf(stderr, "\n");
+	#endif
 	ret = libusb_get_descriptor(devh, 0x0000002, 0x0000000, buf, 0x0000042);
-	//fprintf(stderr, "3 get descriptor returned %d, bytes: ", ret);
-	//print_bytes(buf, ret);
-	//fprintf(stderr, "\n");
-
+	#ifdef DEBUG
+	fprintf(stderr, "3 get descriptor returned %d, bytes: ", ret);
+	print_bytes(buf, ret);
+	fprintf(stderr, "\n");
+	#endif
 	ret = libusb_release_interface(devh, 0);
+	#ifdef DEBUG
 	if (ret != 0) {
-		//fprintf(stderr, "failed to release interface before set_configuration: %d\n", ret);
+		fprintf(stderr, "failed to release interface before set_configuration: %d\n", ret);
 	}
+	#endif
 	ret = libusb_set_configuration(devh, 0x0000001);
+	#ifdef DEBUG
 	//fprintf(stderr, "4 set configuration returned %d\n", ret);
+	#endif
 	ret = libusb_claim_interface(devh, 0);
+	#ifdef DEBUG
 	if (ret != 0) {
-		//fprintf(stderr, "claim after set_configuration failed with error %d\n", ret);
+		fprintf(stderr, "claim after set_configuration failed with error %d\n", ret);
 	}
+	#endif
 	ret = libusb_set_interface_alt_setting(devh, 0, 0);
-	//fprintf(stderr, "4 set alternate setting returned %d\n", ret);
+	#ifdef DEBUG
+	fprintf(stderr, "4 set alternate setting returned %d\n", ret);
+	#endif
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE + LIBUSB_ENDPOINT_IN, 0x0000001, 0x0000001, 0x0000000, buf, 2, 1000);
-	//fprintf(stderr, "5 control msg returned %d, bytes: ", ret);
-	//print_bytes(buf, ret);
-	//fprintf(stderr, "\n");
+	#ifdef DEBUG
+	fprintf(stderr, "5 control msg returned %d, bytes: ", ret);
+	print_bytes(buf, ret);
+	fprintf(stderr, "\n");
+	#endif
 
 	somagic_write_reg(0x3a, 0x80);
 	somagic_write_reg(0x3b, 0x00);
@@ -969,7 +1006,9 @@ int main(int argc, char **argv)
 		/* Chrominance trap bypass (BYPS) = Chrominance trap bypassed; default for S-video mode */
 		work |= 0x80;
 	}
-	//fprintf(stderr, "Subaddress 0x09 set to %02x\n", work); 
+	#ifdef DEBUG
+	fprintf(stderr, "Subaddress 0x09 set to %02x\n", work); 
+	#endif
 	somagic_write_i2c(0x4a, 0x09, work);
 
 	/* Subaddress 0x0a, Luminance brightness control */
@@ -1025,13 +1064,13 @@ int main(int argc, char **argv)
 	/* VREF pulse position and length (VRLN) = see Table 46 in SAA7113H documentation */
 	/* Luminance delay compensation (steps in 2/LLC) = 0 */
 	somagic_write_i2c(0x4a, 0x10, 0x40);
-	/*
+	#ifdef DEBUG
 	if (input_type == CVBS) {
 		somagic_write_i2c(0x4a, 0x10, 0x40);
 	} else {
 		somagic_write_i2c(0x4a, 0x10, 0x00);
 	}
-	*/
+	#endif
 
 	/* Subaddress 0x11, Output control 1 */
 	/* General purpose switch [available on pin RTS1, if control bits RTSE13 to RTSE10 (subaddress 0x12) is set to 0010] = LOW */
@@ -1150,40 +1189,53 @@ int main(int argc, char **argv)
 	somagic_write_i2c(0x4a, 0x5e, 0x00);
 
 	status = somagic_read_i2c(0x4a, 0x10);
-	//fprintf(stderr,"i2c_read(0x10) = %02x\n", status);
+	#ifdef DEBUG
+	fprintf(stderr,"i2c_read(0x10) = %02x\n", status);
+	#endif
 
 	status = somagic_read_i2c(0x4a, 0x02);
+	#ifdef DEBUG
 	//fprintf(stderr,"i2c_stat(0x02) = %02x\n", status);
+	#endif
 
 	somagic_write_reg(0x1740, 0x40);
 
 	status = somagic_read_reg(0x3080);
-	//fprintf(stderr, "status is %02x\n", status);
+	#ifdef DEBUG
+	fprintf(stderr, "status is %02x\n", status);
+	#endif
 
 	somagic_write_reg(0x1740, 0x00);
 	usleep(250 * 1000);
 	somagic_write_reg(0x1740, 0x00);
 
 	status = somagic_read_reg(0x3080);
-	//fprintf(stderr, "status is %02x\n", status);
+	#ifdef DEBUG
+	fprintf(stderr, "status is %02x\n", status);
+	#endif
 
 	
 	memcpy(buf, "\x01\x02", 2);
 	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x0000001, 0x0000000, buf, 2, 1000);
-	//fprintf(stderr, "190 control msg returned %d, bytes: ", ret);
-	//print_bytes(buf, ret);
-	//fprintf(stderr, "\n");
-
-//	somagic_write_reg(0x1740, 0x05);
+	#ifdef DEBUG
+	fprintf(stderr, "190 control msg returned %d, bytes: ", ret);
+	print_bytes(buf, ret);
+	fprintf(stderr, "\n");
+	somagic_write_reg(0x1740, 0x05);
+	#endif
 	usleep(30 * 1000);
 	ret = libusb_set_interface_alt_setting(devh, 0, 2);
+	#ifdef DEBUG
 	//fprintf(stderr, "192 set alternate setting returned %d\n", ret);
+	#endif
 
 	
 	for (i = 0; i < NUM_ISO_TRANSFERS; i++)	{
 		tfr[i] = libusb_alloc_transfer(64);
 		if (tfr[i] == NULL) {
-			//fprintf(stderr, "Failed to allocate USB transfer #%d\n", i);
+			#ifdef DEBUG
+			fprintf(stderr, "Failed to allocate USB transfer #%d\n", i);
+			#endif
 			return 1;
 		}
 		libusb_fill_iso_transfer(tfr[i], devh, 0x00000082, isobuf[i], 64 * 3072, 64, gotdata, NULL, 2000);
@@ -1194,7 +1246,9 @@ int main(int argc, char **argv)
 	for (i = 0; i < NUM_ISO_TRANSFERS; i++) {
 		ret = libusb_submit_transfer(tfr[i]);
 		if (ret != 0) {
-			//fprintf(stderr, "libusb_submit_transfer failed with error %d for transfer %d\n", ret, i);
+			#ifdef DEBUG
+			fprintf(stderr, "libusb_submit_transfer failed with error %d for transfer %d\n", ret, i);
+			#endif
 			exit(1);
 		}
 	}
@@ -1217,10 +1271,14 @@ int main(int argc, char **argv)
 
 	while (/*pending_requests > 0*/ 1) {
 		libusb_handle_events(NULL);
-		//fprintf(stderr,"vf=%d sf=%d\n",vid_free_item, snd_free_item );
+		#ifdef DEBUG
+		fprintf(stderr,"vf=%d sf=%d\n",vid_free_item, snd_free_item );
+		#endif
 
 		if( vid_free_item >= NUM_ISO_TRANSFERS - 4 ){ 
-			//fprintf(stderr,"v\n");
+			#ifdef DEBUG
+			fprintf(stderr,"v\n");
+			#endif
 			for( i = 0 ; i < vid_free_item; i++ ) libusb_submit_transfer( vid_free[i] );
 			vid_free_item = 0;
 		}

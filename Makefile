@@ -29,7 +29,7 @@ BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
 PROGRAMS = somagic-init somagic-capture somagic-audio-capture somagic-both
 MANUALS = man/somagic-init.1 man/somagic-capture.1
-CFLAGS = -s -W -Wall
+CFLAGS = -s -W -Wall -Wno-unused-but-set-variable
 LFLAGS = -lusb-1.0 -lgcrypt
 
 .SUFFIXES:
