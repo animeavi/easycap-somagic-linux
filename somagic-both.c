@@ -555,9 +555,7 @@ static int somagic_write_reg(uint16_t reg, uint8_t val)
 
 static uint8_t somagic_read_i2c(uint8_t dev_addr, uint8_t reg)
 {
-#ifdef DEBUG
 	int ret;
-#endif
 	uint8_t buf[13];
 
 	memcpy(buf, "\x0b\x4a\x84\x00\x01\x10\x00\x00\x00\x00\x00\x00\x00", 13);
@@ -565,10 +563,10 @@ static uint8_t somagic_read_i2c(uint8_t dev_addr, uint8_t reg)
 	buf[1] = dev_addr;
 	buf[5] = reg;
 
-	libusb_control_transfer(devh,
-				LIBUSB_REQUEST_TYPE_VENDOR +
-				LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b,
-				0x0000000, buf, 13, 1000);
+	ret = libusb_control_transfer(devh,
+				      LIBUSB_REQUEST_TYPE_VENDOR +
+				      LIBUSB_RECIPIENT_DEVICE, 0x0000001,
+				      0x000000b, 0x0000000, buf, 13, 1000);
 #ifdef DEBUG
 	fprintf(stderr, "-> i2c_read msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
@@ -580,10 +578,10 @@ static uint8_t somagic_read_i2c(uint8_t dev_addr, uint8_t reg)
 
 	buf[1] = dev_addr;
 
-	libusb_control_transfer(devh,
-				LIBUSB_REQUEST_TYPE_VENDOR +
-				LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x000000b,
-				0x0000000, buf, 13, 1000);
+	ret = libusb_control_transfer(devh,
+				      LIBUSB_REQUEST_TYPE_VENDOR +
+				      LIBUSB_RECIPIENT_DEVICE, 0x0000001,
+				      0x000000b, 0x0000000, buf, 13, 1000);
 #ifdef DEBUG
 	fprintf(stderr, "-> i2c_read msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
@@ -591,10 +589,11 @@ static uint8_t somagic_read_i2c(uint8_t dev_addr, uint8_t reg)
 #endif
 
 	memset(buf, 0xff, 0x000000d);
-	libusb_control_transfer(devh,
-				LIBUSB_REQUEST_TYPE_VENDOR +
-				LIBUSB_RECIPIENT_DEVICE + LIBUSB_ENDPOINT_IN,
-				0x0000001, 0x000000b, 0x0000000, buf, 13, 1000);
+	ret = libusb_control_transfer(devh,
+				      LIBUSB_REQUEST_TYPE_VENDOR +
+				      LIBUSB_RECIPIENT_DEVICE +
+				      LIBUSB_ENDPOINT_IN, 0x0000001, 0x000000b,
+				      0x0000000, buf, 13, 1000);
 #ifdef DEBUG
 	fprintf(stderr, "<- i2c_read msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
