@@ -187,7 +187,7 @@ static void print_bytes(unsigned char *bytes, int len)
 }
 
 #ifdef DEBUG
-static void print_bytes_only(char *bytes, int len)
+static void print_bytes_only(unsigned char *bytes, int len)
 {
 	int i;
 	if (len > 0) {
@@ -195,25 +195,9 @@ static void print_bytes_only(char *bytes, int len)
 			if (i % 32 == 0) {
 				fprintf(stderr, "\n%04x\t ", i);
 			}
-			fprintf(stderr, "%02x ",
-				(int)((unsigned char)bytes[i]));
+			fprintf(stderr, "%02x ", (int)(bytes[i]));
 		}
 	}
-}
-#endif
-
-#ifdef DEBUG
-static void trace()
-{
-	void *array[10];
-	size_t size;
-
-	/* get void*'s for all entries on the stack */
-	size = backtrace(array, 10);
-
-	/* print out all the frames */
-	backtrace_symbols_fd(array, size, 1);
-	exit(1);
 }
 #endif
 
@@ -310,8 +294,8 @@ alg1_process(struct alg1_video_state_t *vs, unsigned char *buffer, int length)
 					vs->active_line_count, next - buffer,
 					next - buffer);
 #ifdef DEBUG
-				print_bytes_only(pbuffer, buffer_pos + 64);
-				print_bytes(pbuffer + buffer_pos, 8);
+				print_bytes_only(buffer, (next - buffer) + 64);
+				print_bytes(buffer + (next - buffer), 8);
 #endif
 				bs = 1;
 			}

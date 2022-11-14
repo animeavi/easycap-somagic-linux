@@ -41,6 +41,9 @@ all: $(PROGRAMS)
 .c:
 	$(CC) $(CFLAGS) $< -o $@ $(LFLAGS)
 
+debug: CFLAGS += -DDEBUG -g
+debug: $(PROGRAMS)
+
 install: $(PROGRAMS)
 	install -Dm755 $(PROGRAMS) $(BINDIR)
 	@printf "$(PROGRAMS) installed to $(BINDIR)!\n\n"

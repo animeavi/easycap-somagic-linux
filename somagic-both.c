@@ -417,9 +417,11 @@ void set_snd_mode(libusb_device_handle * dev_handle)
 
 }
 
+#ifdef DEBUG
+static int reqcount = 0;
+#endif
 void gotdata(struct libusb_transfer *tfr)
 {
-	//int ret;
 	int num = tfr->num_iso_packets;
 	int i;
 
@@ -469,6 +471,7 @@ void gotdata(struct libusb_transfer *tfr)
 		vid_free_item++;
 	}
 #ifdef DEBUG
+	int ret;
 	if (!stop_sending_requests) {
 		reqcount++;
 		if (iso_mode == 1)
@@ -1396,7 +1399,7 @@ int main(int argc, char **argv)
 	while ( /*pending_requests > 0 */ 1) {
 		libusb_handle_events(NULL);
 #ifdef DEBUG
-		fprintf(stderr, "vf=%d sf=%d\n", vid_free_item, snd_free_item);
+		fprintf(stderr, "vf=%d\n", vid_free_item);
 #endif
 
 		if (vid_free_item >= NUM_ISO_TRANSFERS - 4) {

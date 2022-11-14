@@ -124,22 +124,11 @@ void gotdata(struct libusb_transfer *tfr)
 
 #ifdef DEBUG
 	fprintf(stderr,
-		"id %d got %d pkts of length %d. calc=%d, total=%d (%04x)\n",
-		pcount, num, length, num * length, total, total);
+		"id %d got %d pkts of length %d. calc=%d\n",
+		pcount, num, tfr->iso_packet_desc[i].actual_length,
+		num * tfr->iso_packet_desc[i].actual_length);
 #endif
 	pcount++;
-
-#ifdef DEBUG
-	if (pcount >= 0) {
-		find_sync(data, num * length);
-		init_buffer(data, num * length);
-		init_buffer(data, total);
-		process_data();
-		fprintf(stderr, "write\n");
-		write(1, data, total);
-		write(1, "----------------", 16);
-	}
-#endif
 
 	if (pcount <= FCOUNT - 4) {
 #ifdef DEBUG
@@ -715,11 +704,11 @@ int main()
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
 	// Subaddress 40h: 00 for PAL, 80 for NTSC 
-	if (tv_standard == PAL) {
-		memcpy(buf, "\x0b\x4a\x84\x00\x01\x40\x00\x00", 0x0000008);
-	} else {
-		memcpy(buf, "\x0b\x4a\x84\x00\x01\x40\x80\xf4", 0x0000008);
-	}
+	/* if (tv_standard == PAL) {
+	   memcpy(buf, "\x0b\x4a\x84\x00\x01\x40\x00\x00", 0x0000008);
+	   } else {
+	   memcpy(buf, "\x0b\x4a\x84\x00\x01\x40\x80\xf4", 0x0000008);
+	   } */
 	ret =
 	    libusb_control_transfer(devh,
 				    LIBUSB_REQUEST_TYPE_VENDOR +
@@ -794,9 +783,9 @@ int main()
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
 	// Subaddress 40h: 00 for PAL, 80 for NTSC
-	if (tv_standard == NTSC) {
-		memcpy(buf, "\x0b\x4a\xa0\x00\x01\x40\x80\xf4", 0x0000008);
-	}
+	/*if (tv_standard == NTSC) {
+	   memcpy(buf, "\x0b\x4a\xa0\x00\x01\x40\x80\xf4", 0x0000008);
+	   } */
 	ret =
 	    libusb_control_transfer(devh,
 				    LIBUSB_REQUEST_TYPE_VENDOR +
@@ -807,11 +796,11 @@ int main()
 	print_bytes(buf, ret);
 	fprintf(stderr, "\n");
 	// Subaddress 5Ah: 07 for PAL, 0a for NTSC
-	if (tv_standard == PAL) {
-		memcpy(buf, "\x0b\x4a\xc0\x01\x01\x5a\x07\x00", 0x0000008);
-	} else {
-		memcpy(buf, "\x0b\x4a\xc0\x01\x01\x5a\x0a\x86", 0x0000008);
-	}
+	/*if (tv_standard == PAL) {
+	   memcpy(buf, "\x0b\x4a\xc0\x01\x01\x5a\x07\x00", 0x0000008);
+	   } else {
+	   memcpy(buf, "\x0b\x4a\xc0\x01\x01\x5a\x0a\x86", 0x0000008);
+	   } */
 	ret =
 	    libusb_control_transfer(devh,
 				    LIBUSB_REQUEST_TYPE_VENDOR +
