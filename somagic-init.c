@@ -51,6 +51,7 @@ static const unsigned char SOMAGIC_FIRMWARE_CRC32[PRODUCT_COUNT][4] = {
 	{'\x1f', '\xfe', '\xde', '\xbb'},
 	{'\x60', '\x1d', '\x37', '\x5f'}
 };
+
 #define VENDOR 0x1c88
 #define ORIGINAL_PRODUCT 0x0007
 static const int NEW_PRODUCT[PRODUCT_COUNT] = {
@@ -73,7 +74,8 @@ static void list_devices()
 	for (i = 0; i < count; i++) {
 		item = list[i];
 		libusb_get_device_descriptor(item, &descriptor);
-		printf("0x%04x:0x%04x\n", descriptor.idVendor, descriptor.idProduct);
+		printf("0x%04x:0x%04x\n", descriptor.idVendor,
+		       descriptor.idProduct);
 		libusb_unref_device(item);
 	}
 	libusb_free_device_list(list, 0);
@@ -118,7 +120,8 @@ static struct libusb_device *find_device(int vendor, int product)
 	for (i = 0; i < count; i++) {
 		item = list[i];
 		libusb_get_device_descriptor(item, &descriptor);
-		if (descriptor.idVendor == vendor && descriptor.idProduct == product) {
+		if (descriptor.idVendor == vendor
+		    && descriptor.idProduct == product) {
 			dev = item;
 		} else {
 			libusb_unref_device(item);
@@ -130,25 +133,33 @@ static struct libusb_device *find_device(int vendor, int product)
 
 static void version()
 {
-	fprintf(stderr, PROGRAM_NAME" "VERSION"\n");
+	fprintf(stderr, PROGRAM_NAME " " VERSION "\n");
 	fprintf(stderr, "Copyright 2011, 2012 Tony Brown, Jeffry Johnston\n");
-	fprintf(stderr, "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl.html>.\n");
-	fprintf(stderr, "This is free software: you are free to change and redistribute it.\n");
-	fprintf(stderr, "There is NO WARRANTY, to the extent permitted by law.\n");
+	fprintf(stderr,
+		"License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl.html>.\n");
+	fprintf(stderr,
+		"This is free software: you are free to change and redistribute it.\n");
+	fprintf(stderr,
+		"There is NO WARRANTY, to the extent permitted by law.\n");
 }
 
 static void usage()
 {
-	fprintf(stderr, "Usage: "PROGRAM_NAME" [options]\n");
-	fprintf(stderr, "  -f, --firmware=FILENAME  Use firmware file FILENAME\n");
-	fprintf(stderr, "                           (default: "SOMAGIC_FIRMWARE_PATH")\n");
-	fprintf(stderr, "      --skip-check         Do not attempt to validate firmware\n");
+	fprintf(stderr, "Usage: " PROGRAM_NAME " [options]\n");
+	fprintf(stderr,
+		"  -f, --firmware=FILENAME  Use firmware file FILENAME\n");
+	fprintf(stderr,
+		"                           (default: " SOMAGIC_FIRMWARE_PATH
+		")\n");
+	fprintf(stderr,
+		"      --skip-check         Do not attempt to validate firmware\n");
 	fprintf(stderr, "      --help               Display usage\n");
-	fprintf(stderr, "      --version            Display version information\n");
+	fprintf(stderr,
+		"      --version            Display version information\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Example (run as root):\n");
 	fprintf(stderr, "# Initialize device (if not using kernel module)\n");
-	fprintf(stderr, PROGRAM_NAME"\n");
+	fprintf(stderr, PROGRAM_NAME "\n");
 }
 
 int main(int argc, char **argv)
@@ -159,9 +170,9 @@ int main(int argc, char **argv)
 	char *firmware;
 	FILE *infile;
 	int i;
-	#ifdef DEBUG
+#ifdef DEBUG
 	int j;
-	#endif
+#endif
 	char *firmware_path = SOMAGIC_FIRMWARE_PATH;
 	int p;
 	int firmware_length;
@@ -172,9 +183,9 @@ int main(int argc, char **argv)
 	int c;
 	int option_index = 0;
 	static struct option long_options[] = {
-		{"help", 0, 0, 0},       /* index 0 */
-		{"skip-check", 0, 0, 0}, /* index 1 */
-		{"version", 0, 0, 0},    /* index 2 */
+		{"help", 0, 0, 0},	/* index 0 */
+		{"skip-check", 0, 0, 0},	/* index 1 */
+		{"version", 0, 0, 0},	/* index 2 */
 		{"firmware", 1, 0, 'f'},
 		{0, 0, 0, 0}
 	};
@@ -188,13 +199,13 @@ int main(int argc, char **argv)
 		switch (c) {
 		case 0:
 			switch (option_index) {
-			case 0: /* --help */
+			case 0:	/* --help */
 				usage();
 				return 0;
-			case 1: /* --skip-check */
+			case 1:	/* --skip-check */
 				validate_firmware = 0;
 				break;
-			case 2: /* --version */
+			case 2:	/* --version */
 				version();
 				return 0;
 			default:
@@ -218,75 +229,94 @@ int main(int argc, char **argv)
 	/* Read firmware file */
 	infile = fopen(firmware_path, "r");
 	if (infile == NULL) {
-		fprintf(stderr, "%s: Failed to open firmware file '%s': %s\n", argv[0], firmware_path, strerror(errno));
+		fprintf(stderr, "%s: Failed to open firmware file '%s': %s\n",
+			argv[0], firmware_path, strerror(errno));
 		return 1;
 	}
 	if ((fseek(infile, 0, SEEK_END) == -1) || (ftell(infile) == -1)) {
-		fprintf(stderr, "%s: Failed to determine firmware file '%s' size: %s\n", argv[0], firmware_path, strerror(errno));
+		fprintf(stderr,
+			"%s: Failed to determine firmware file '%s' size: %s\n",
+			argv[0], firmware_path, strerror(errno));
 		return 1;
 	}
 	firmware_length = ftell(infile);
 	firmware = malloc(firmware_length);
 	if (firmware == NULL) {
-		fprintf(stderr, "%s: Failed to allocate '%i' bytes of memory for firmware file '%s': %s\n", argv[0], firmware_length, firmware_path, strerror(errno));
+		fprintf(stderr,
+			"%s: Failed to allocate '%i' bytes of memory for firmware file '%s': %s\n",
+			argv[0], firmware_length, firmware_path,
+			strerror(errno));
 		return 1;
 	}
 	if ((fseek(infile, 0, SEEK_SET) == -1)) {
-		fprintf(stderr, "%s: Failed to seek in firmware file '%s': %s\n", argv[0], firmware_path, strerror(errno));
+		fprintf(stderr,
+			"%s: Failed to seek in firmware file '%s': %s\n",
+			argv[0], firmware_path, strerror(errno));
 		return 1;
 	}
-	if (fread(firmware, 1, firmware_length, infile) < (unsigned)firmware_length) {
-		fprintf(stderr, "%s: Failed to read firmware file '%s': %s\n", argv[0], firmware_path, strerror(errno));
+	if (fread(firmware, 1, firmware_length, infile) <
+	    (unsigned)firmware_length) {
+		fprintf(stderr, "%s: Failed to read firmware file '%s': %s\n",
+			argv[0], firmware_path, strerror(errno));
 		return 1;
 	}
 	if (fclose(infile) != 0) {
-		fprintf(stderr, "%s: Failed to close firmware file '%s': %s\n", argv[0], firmware_path, strerror(errno));
+		fprintf(stderr, "%s: Failed to close firmware file '%s': %s\n",
+			argv[0], firmware_path, strerror(errno));
 		return 1;
 	}
 
 	/* Validate firmware */
 	if (validate_firmware) {
-		gcry_md_hash_buffer(GCRY_MD_CRC32, digest, firmware, firmware_length);
+		gcry_md_hash_buffer(GCRY_MD_CRC32, digest, firmware,
+				    firmware_length);
 		for (p = 0; p < PRODUCT_COUNT; p++) {
 			if (memcmp(digest, SOMAGIC_FIRMWARE_CRC32[p], 4) == 0) {
 				break;
 			}
 		}
 		if (p >= PRODUCT_COUNT) {
-			fprintf(stderr, "Firmware file '%s' was not recognized\n", firmware_path);
+			fprintf(stderr,
+				"Firmware file '%s' was not recognized\n",
+				firmware_path);
 			return 1;
 		}
 	}
 
 	libusb_init(NULL);
-	#ifdef DEBUG
-	#if LIBUSB_API_VERSION >= 0x01000106
-		libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, 255);
-	#else
-		libusb_set_debug(NULL, 255);
-	#endif
+#ifdef DEBUG
+#if LIBUSB_API_VERSION >= 0x01000106
+	libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, 255);
+#else
+	libusb_set_debug(NULL, 255);
+#endif
 	list_devices();
-	#else
-	#if LIBUSB_API_VERSION >= 0x01000106
-		libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, 0);
-	#else
-		libusb_set_debug(NULL, 0);
-	#endif
-	#endif
+#else
+#if LIBUSB_API_VERSION >= 0x01000106
+	libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, 0);
+#else
+	libusb_set_debug(NULL, 0);
+#endif
+#endif
 
 	dev = find_device(VENDOR, ORIGINAL_PRODUCT);
 	if (!dev) {
 		if (validate_firmware) {
 			dev = find_device(VENDOR, NEW_PRODUCT[p]);
 			if (dev) {
-		                fprintf(stderr, "USB device already initialized\n");
+				fprintf(stderr,
+					"USB device already initialized\n");
 			} else {
-		                fprintf(stderr, "USB device %04x:%04x was not found. Is the device attached?\n", VENDOR, ORIGINAL_PRODUCT);
+				fprintf(stderr,
+					"USB device %04x:%04x was not found. Is the device attached?\n",
+					VENDOR, ORIGINAL_PRODUCT);
 			}
 		} else {
-	                fprintf(stderr, "USB device %04x:%04x was not found. The device might not be attached or might already be initialized\n", VENDOR, ORIGINAL_PRODUCT);
+			fprintf(stderr,
+				"USB device %04x:%04x was not found. The device might not be attached or might already be initialized\n",
+				VENDOR, ORIGINAL_PRODUCT);
 		}
-                return 1;
+		return 1;
 	}
 
 	ret = libusb_open(dev, &devh);
@@ -310,26 +340,27 @@ int main(int argc, char **argv)
 	}
 
 	ret = libusb_get_descriptor(devh, 0x0000001, 0x0000000, buf, 0x0000012);
-	#ifdef DEBUG
+#ifdef DEBUG
 	printf("1 get descriptor returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	printf("\n");
-	#endif
+#endif
 	ret = libusb_get_descriptor(devh, 0x0000002, 0x0000000, buf, 0x0000009);
-	#ifdef DEBUG
+#ifdef DEBUG
 	printf("2 get descriptor returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	printf("\n");
-	#endif
+#endif
 	ret = libusb_get_descriptor(devh, 0x0000002, 0x0000000, buf, 0x0000022);
-	#ifdef DEBUG
+#ifdef DEBUG
 	printf("3 get descriptor returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	printf("\n");
-	#endif
+#endif
 	ret = libusb_release_interface(devh, 0);
 	if (ret != 0) {
-		perror("Failed to release interface (before set_configuration)");
+		perror
+		    ("Failed to release interface (before set_configuration)");
 		return 1;
 	}
 	ret = libusb_set_configuration(devh, 0x0000001);
@@ -339,46 +370,62 @@ int main(int argc, char **argv)
 	}
 	ret = libusb_claim_interface(devh, 0);
 	if (ret != 0) {
-		perror("Failed to claim device interface (after set_configuration)");
+		perror
+		    ("Failed to claim device interface (after set_configuration)");
 		return 1;
 	}
 	ret = libusb_set_interface_alt_setting(devh, 0, 0);
 	if (ret != 0) {
-		perror("Failed to set active alternate setting for interface (after set_configuration)");
+		perror
+		    ("Failed to set active alternate setting for interface (after set_configuration)");
 		return 1;
 	}
 
 	usleep(1 * 1000);
-	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE + LIBUSB_ENDPOINT_IN, 0x0000001, 0x0000001, 0x0000000, buf, 2, 1000);
-	#ifdef DEBUG
+	ret =
+	    libusb_control_transfer(devh,
+				    LIBUSB_REQUEST_TYPE_VENDOR +
+				    LIBUSB_RECIPIENT_DEVICE +
+				    LIBUSB_ENDPOINT_IN, 0x0000001, 0x0000001,
+				    0x0000000, buf, 2, 1000);
+#ifdef DEBUG
 	printf("5 control msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	printf("\n");
-	#endif
+#endif
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	for (i = 0, j = 6; i < firmware_length; i += 62, j++) {
-	#else
+#else
 	for (i = 0; i < firmware_length; i += 62) {
-	#endif
+#endif
 		memcpy(buf, "\x05\xff", 2);
 		memcpy(buf + 2, firmware + i, 62);
-		ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x0000005, 0x0000000, buf, 64, 1000);
-		#ifdef DEBUG
+		ret =
+		    libusb_control_transfer(devh,
+					    LIBUSB_REQUEST_TYPE_VENDOR +
+					    LIBUSB_RECIPIENT_DEVICE, 0x0000001,
+					    0x0000005, 0x0000000, buf, 64,
+					    1000);
+#ifdef DEBUG
 		printf("%i control msg returned %d, bytes: ", j, ret);
 		print_bytes(buf, ret);
 		printf("\n");
-		#endif
+#endif
 		usleep(1 * 1000);
 	}
 
 	memcpy(buf, "\x07\x00", 2);
-	ret = libusb_control_transfer(devh, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_RECIPIENT_DEVICE, 0x0000001, 0x0000007, 0x0000000, buf, 2, 1000);
-	#ifdef DEBUG
+	ret =
+	    libusb_control_transfer(devh,
+				    LIBUSB_REQUEST_TYPE_VENDOR +
+				    LIBUSB_RECIPIENT_DEVICE, 0x0000001,
+				    0x0000007, 0x0000000, buf, 2, 1000);
+#ifdef DEBUG
 	printf("127 control msg returned %d, bytes: ", ret);
 	print_bytes(buf, ret);
 	printf("\n");
-	#endif
+#endif
 
 	libusb_close(devh);
 	libusb_exit(NULL);
