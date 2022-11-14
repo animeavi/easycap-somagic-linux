@@ -77,6 +77,11 @@ uninstall: $(BINDIR)/$(PROGRAMS)
 	-rm -rf $(MANDIR)/man1/somagic-capture.1
 	-rm -rf $(MANDIR)/man1/somagic-init.1
 
+.PHONY: indent
+indent:
+	find -name '*.c' | xargs indent -linux
+	find -name "*.c~" | xargs rm -rf
+
 .PHONY: clean
 clean:
 	-rm -rf $(PROGRAMS)
